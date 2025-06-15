@@ -330,12 +330,15 @@ Now, let's put it all together. Let's create a pipeline that filters, groups, su
 
 #### Exercise 5
 
-Use the data set `US_births_2000_2014` from package `fivethirtyeight` and to the following:
+Use the data set `gss` from package `infer` and to the following:
 
-1. Filter the data to account only for those babies born on Fridays.
-2. Summarize the average and standard deviation for the number of births per day.
-3. Repeat question 2, but this time group by day of the week before getting the mean and standard deviation. So, you'll have different results (mean and sd) per day.
-4. Create a new data set that select only the variables `births` and `day_of_week.`
+1. Filter the data to account only for individual with a college degree
+2. Group the data by class
+3. Summarize the average number of weekly working hours and the year respondent was surveyed.
+and standard deviation for the number of births per day.
+4. Create a categorical variable for the average number of hours, with categories full time, part time, or contract, if the average hours is at least 40, between 20 and 40, or less than 20, respectively.
+5. Arrange the data in descending order based on the average hours.
+6. Create a data only with columns `class` and average hours.
 
 
 ## Part 4: A Preview of Sampling and Confidence Intervals
