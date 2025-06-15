@@ -1,7 +1,7 @@
 ---
 title: "Statistical Inference via Data Science with R"
-subtitle: "Walkthrough and Exercises"
-author: "Chester Ismay and Arturo Valdivia"
+subtitle: "Activities Completed"
+author: "Arturo Valdivia"
 format: html
 ---
 
