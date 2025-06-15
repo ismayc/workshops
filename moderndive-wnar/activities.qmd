@@ -1,0 +1,454 @@
+---
+title: "Statistical Inference via Data Science with R"
+subtitle: "Activities"
+author: "Chester Ismay and Arturo Valdivia"
+format: html
+---
+
+```{r}
+#| include: false
+options(width = 120)
+library(tidyverse)
+library(infer)
+library(moderndive)
+```
+
+
+## Part 1: Introduction to R and RStudio
+
+### 1.1. Installing R and RStudio
+
+- You need to install R first from <https://cloud.r-project.org/> and then install RStudio from <https://posit.co/download/rstudio-desktop/>. 
+- Once installed, work in RStudio to interact with R efficiently.
+
+
+
+### 1.2. Exploring RStudio
+
+
+#### Exploring the RStudio Interface
+
+In RStudio, you will see three panes: Console, Environment, and Files.
+
+- The Console is where you type and run your R code.
+- The Environment pane shows all objects (like datasets) currently in memory.
+- The Files pane helps you navigate files in your project.
+
+#### Working with different files
+
+In RStudio, you can work with different types of documents
+
+- Files
+    - R Scripts (.R files)
+    - Quarto documents (.qmd files)
+    - R Markdown (.Rmd files)
+- Projects
+- Shiny Apps
+- Many more!
+
+
+### 1.3. Installing and Loading Packages
+
+
+- First install the package using the `install.packages()` function
+    - You only need to install the package once
+- To load a package, use the `library()` function
+    - We load a package every time we need to use it
+
+- TIP: Access information about a package or a function using the `?` operator or `help()` function.
+
+
+#### Example 1
+
+Let's install and load the package `moderndive`
+
+```{r}
+
+```
+
+
+#### Exercise 1
+
+Install and load the following packages:
+
+- `tidyverse` (this package contains many other packages)
+- `fivethirtyeight`
+
+```{r}
+
+```
+
+
+### 1.4. Working with data sets
+
+
+#### Loading and Viewing a Dataset
+
+There are different ways to access a data set function in R to load a data set
+
+- Data sets are often part of R packages
+    - Load the package to have access to its data sets
+- Once the data set has been loaded into R, we can view it using the function `View()`.
+
+
+#### Checking the data set structure and data types. 
+
+Each column in a dataset has a data type, such as:  
+
+- `chr` for character (text)  
+- `dbl` for numeric (decimal values)  
+- `lgl` for logical (TRUE/FALSE)   
+- `int` for integer (non-decimal values)  
+- `fct` for factor (categorical)  
+
+The function `glimpse()` from the `dplyr` package gives a preview of the data types and the first few entries in each column.
+
+
+```{r}
+
+```
+
+
+- We can also access a specific column by using the `$` operator
+
+
+```{r}
+
+```
+
+- Let's check the first few rows of the data set
+
+```{r}
+
+```
+
+
+#### Example 2
+
+Let's load and view the dataset `un_member_states_2024` from package `moderndive` 
+
+```{r}
+
+```
+
+This opens a spreadsheet-like viewer in RStudio to explore the dataset. This is what is known as a `data frame` in R.
+
+The `un_member_states_2024` data contains information on 193 UN member states, with 39 columns capturing various aspects of each country. These columns include details such as the country name, ISO codes, continent, GDP per capita, population, life expectancy, and Olympic participation. It provides a comprehensive dataset for exploring demographic, economic, geographic, and social indicators at the country level.
+
+Observe that `country` and `iso` are identification variables while the remaining are measurement variables.
+
+
+
+
+#### Exercise 2 
+
+Use the dataset `house_prices` from package `moderndive` 
+
+1. Load and View the data set. 
+2. Determine how many rows and how many variables this data frame has
+3. Check the structure of the variables (columns) in the data set and provide at least two variables that are identification variables and other two that are measurement variables. Provide also the data type for those four variables.
+4. Extract information of the variable `price` in package `house_prices`
+
+
+### 1.5. An introduction to coding in R
+
+- Basic math in R
+    - Using numbers
+    - Using vectors
+- Using R functions.
+    - You can use named arguments or positional arguments. The former is more reliable.
+
+
+#### Example 3
+
+```{r}
+
+```
+
+#### Exercise 3
+
+1. Extract information of the variable `price` in package `house_prices` and store
+this information in a vector call `pr`.
+2. Create a sequence of even numbers from 34 to 76. Store this sequence in an object called `even_vec`.
+
+
+```{r}
+
+```
+
+
+
+
+## Part 2: Data Visualization using `ggplot2`
+
+Let's first install (if we haven't done this yet) and load the necessary packages. These are `ggplot2` for data visualization and `moderndive` to use some data sets.
+
+```{r}
+
+```
+
+In the Moderndive textbook, we present five named graphs. In the interest of time, we discuss three of them here: histograms, boxplots, and scatterplots.
+
+### 2.1. The Histogram
+
+Histograms are useful to visualize the distribution of the data. If the data is an entire population, we use the histogram to visualize the distribution of this population. 
+
+Let's use the dataset `un_member_states_2024` from package `moderndive` and study the distribution of life expectancy.
+
+```{r}
+
+```
+
+
+### 2.2. Boxplot
+
+Boxplots are useful to study the spread (or distribution) of a variable using a five-number summary to construct a box. Moreover, we can create boxplots separated by categories of another variable. This allows us to compare the distributions for each category.
+
+Let's continue using that data set `un_member_states_2024` and construct boxplots to visualize the life expectancy spread by continent
+
+```{r}
+
+```
+
+
+### 2.3. Scatterplot
+
+Scatterplots display the relationship between two numerical variables
+
+Let's continue using that data set `un_member_states_2024` and construct the scatterplot of GDP per Capita vs. Life Expectancy
+
+```{r}
+
+```
+
+
+
+### 2.4. Faceted Scatterplot
+
+
+As it was done with boxplots earlier, we can construct scatterplots separated by the categories of another variable.
+
+Let's use the data set `un_member_states_2024` and construct scatterplots of GDP per capita vs. life expectancy by continent
+
+
+```{r}
+
+```
+
+
+
+#### Exercise 4
+
+Use the data set `MA_schools` and do the following:
+
+1. Obtain a histogram for the distribution of the average SAT math score.
+2. Obtain boxplots showing the distribution of the average SAT math score by school size
+3. Obtain a scatterplot comparing the average SAT math score with the percent of the student body that are considered economically disadvantaged
+4. Repeat the previous question, but creating faceted scatterplots by school size
+
+
+
+
+## Part 3: Data Wrangling and Tidy Data
+
+
+For this part, we are going to use the dataset `un_member_states_2024` from package `moderndive`
+
+### 3.1. Filtering Rows with `filter()`
+
+- Filter countries in Africa with GDP per capita greater than $5,000
+- TIP: Can also use the `&` instead of `,` for AND conditions
+    - This is not the same as using `|` which is an OR condition
+
+
+
+```{r filter-example}
+
+```
+
+
+
+### 3.2. Summarizing Data with summarize()
+
+Let's use `un_member_states_2024` and summarize the average life expectancy and population
+
+
+```{r summarize-example}
+
+
+```
+
+
+
+### 3.3. Grouping Data with `group_by()`
+
+Group by continent and summarize the average life expectancy for each group
+
+
+```{r groupby-example}
+
+```
+
+
+
+### 3.4. Creating New Variables with `mutate()`
+
+Create a new variable that categorizes countries by GDP per capita
+
+
+```{r mutate-example}
+
+```
+
+
+
+### 3.5. Arranging Rows with `arrange()`
+
+Arrange countries by population in descending order
+
+
+```{r arrange-example}
+
+```
+
+
+
+### 3.6. Selecting Specific Columns with `select()`
+
+Select country name, continent, and population
+
+
+```{r select-example}
+
+```
+
+Now, let's put it all together. Let's create a pipeline that filters, groups, summarizes, mutates, arranges, and selects columns for countries in Asia and Europe
+
+```{r}
+
+```
+
+#### Exercise 5
+
+Use the data set `US_births_2000_2014` from package `fivethirtyeight` and to the following:
+
+1. Filter the data to account only for those babies born on Fridays.
+2. Summarize the average and standard deviation for the number of births per day.
+3. Repeat question 2, but this time group by day of the week before getting the mean and standard deviation. So, you'll have different results (mean and sd) per day.
+4. Create a new data set that select only the variables `births` and `day_of_week.`
+
+
+## Part 4: A Preview of Sampling and Confidence Intervals
+
+
+### 4.1. Population Data
+
+
+
+- Calculate the population mean and the population standard deviation
+
+```{r}
+
+```
+
+
+- Visualize the distribution of the population data
+
+
+```{r}
+
+```
+
+### 4.2. Sampling
+
+- Take many samples (1000) of size 100 from the population
+
+```{r}
+
+```
+
+- Calculate the sample means
+
+```{r}
+
+```
+
+
+
+
+
+We now show that the mean of sample means is very close to the population mean and the standard error, the standard deviation of the sample means, is very close to the population standard deviation divided by the square root of the sample size
+
+```{r}
+```
+
+
+- We draw a histogram for the sample means and show that it follows a bell-shaped curve: 
+
+```{r}
+
+```
+
+
+
+    
+### 4.3. Confidence Interval: A Theory-Based Approach
+
+
+- The dataset `almonds_sample_100` is a random sample of 100 almonds from the almond bowl. We calculate the sample mean and the sample standard deviation
+
+```{r}
+
+```
+
+- The margin of error for a 95% confidence interval is approximately two times the standard error and the confidence interval is
+
+```{r}
+
+```
+
+- We can now interpret the confidence interval
+
+If you could construct intervals using the procedure described earlier for every possible random sample, then 95% of these intervals will include the population mean and 5% of them will not. In the literature, the short-hand interpretation is: we are 95% confident that the interval contains the population parameter. 
+
+    
+### 4.4. Confidence Interval: A Simulation-Based Approach
+
+
+- Going Over the `infer` Framework
+
+![infer_framework](https://moderndive.com/v2/images/flowcharts/infer/visualize.png)
+
+- Bootstrapping the Sample
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+- Calculate the Bootstrap Confidence Interval
+
+```{r}
+
+```
+
+```{r eval=FALSE}
+
+```
+
+
+- The Interpretation of the Bootstrap Confidence Interval is equivalent to the theory-based interpretation.
+
+
+#### Exercise 6
+
+1. Use the data set `almonds_bowl` as your population but construct a new random sample from this population with 125 observations.
+2. Obtain a 95% confidence interval using the theory-based approach
+3. Obtain a 95% confidence interval using the simulation-based approach with 4000 bootstrap samples.
+4. Interpret one of your intervals.
