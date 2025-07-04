@@ -1,0 +1,87 @@
+---
+title: "Coffee Quality Analysis"
+author: "Chet Ismay"
+format: html
+---
+
+## Data Load
+
+```{r}
+# Load coffee_quality data from moderndive package
+library(moderndive)
+data("coffee_quality", package = "moderndive")
+
+# Preview first 10 rows
+head(coffee_quality, 10)
+```
+
+
+
+## Exploratory Data Analysis
+
+```{r}
+# Create a summary table of mean and SD for 
+# all numeric columns
+library(dplyr)
+summary_table <- coffee_quality |> 
+  summarise(across(where(is.numeric), list(mean = mean, sd = sd), na.rm = TRUE))
+
+# Generate side-by-side boxplot of acidity by continent
+library(ggplot2)
+ggplot(coffee_quality, aes(x = continent, y = acidity)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Acidity by Continent", x = "Continent", y = "Acidity") +
+  theme_minimal()
+```
+
+## Modeling and Inference
+
+```{r}
+# 1. Fit a linear regression: acidity ~ aroma
+model_acidity_aroma <- lm(acidity ~ aroma, data = coffee_quality)
+
+# 2. Get results using the three 
+# moderndive::get_regression functions
+library(moderndive)
+results_quality_aroma <- get_regression(model_quality_aroma, 
+                                         data = coffee_quality, 
+                                         conf_level = 0.95)
+
+# Use the infer R package to perform a two-sample 
+# permutation test on total_cup_points for 
+# Asian vs North American countries
+library(infer)
+results_permutation_test <- coffee_quality |> 
+  specify(total_cup_points ~ continent) |> 
+  hypothesize(null = "independence") |> 
+  generate(reps = 1000, type = "permute") |> 
+  calculate(stat = "diff in means", order = c("Asia", "North America")) |> 
+  get_p_value(obs_stat = mean(coffee_quality$total_cup_points[coffee_quality$continent == "Asia"]) - 
+                mean(coffee_quality$total_cup_points[coffee_quality$continent == "North America"]), 
+              direction = "two-sided")
+```
+
+## Custom Functions
+
+```{r}
+# Write a function corr_matrix(df) that
+# selects only numeric columns,
+# computes pairwise Pearson correlations, and
+# returns a tidy tibble with Var1, Var2, and correlation
+corr_matrix <- function(df) {
+  library(tidyr)
+  library(dplyr)
+  
+  # Select numeric columns
+  numeric_df <- df %>% select(where(is.numeric))
+  
+  # Compute pairwise Pearson correlations
+  corr_matrix <- cor(numeric_df, use = "pairwise.complete.obs")
+  
+  # Convert to tidy format
+  corr_tidy <- as.data.frame(as.table(corr_matrix)) %>%
+    rename(Var1 = Var1, Var2 = Var2, correlation = Freq) %>%
+    filter(Var1 != Var2)  # Remove self-correlations
+  
+  return(corr_tidy)
+}
