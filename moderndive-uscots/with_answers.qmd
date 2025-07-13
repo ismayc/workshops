@@ -1,0 +1,900 @@
+---
+title: "Statistical Inference via Data Science with R"
+subtitle: "Activities and Exercises (With Answers)"
+author: "Chester Ismay and Arturo Valdivia"
+format: html
+---
+
+```{r}
+#| include: false
+options(width = 120)
+library(tidyverse)
+library(infer)
+library(moderndive)
+```
+
+
+## Part 0: Introduction to R and RStudio
+
+### 0.1. Installing R and RStudio
+
+- You need to install R first from <https://cloud.r-project.org/> and then install RStudio from <https://posit.co/download/rstudio-desktop/>. 
+- Once installed, work in RStudio to interact with R efficiently.
+
+
+
+### 0.2. Exploring RStudio
+
+
+#### Exploring the RStudio Interface
+
+In RStudio, you will see three panes: Console, Environment, and Files.
+
+- The Console is where you type and run your R code.
+- The Environment pane shows all objects (like datasets) currently in memory.
+- The Files pane helps you navigate files in your project.
+
+#### Working with different files
+
+In RStudio, you can work with different types of documents.
+
+- Files
+    - R Scripts (.R files)
+    - Quarto documents (.qmd files)
+    - R Markdown (.Rmd files)
+- Projects
+- Shiny Apps
+- Many more!
+
+
+### 0.3. Installing and Loading Packages
+
+
+- First, install the package using the `install.packages()` function
+    - You only need to install the package once
+- To load a package, use the `library()` function
+    - We load a package every time we need to use it
+
+
+#### Activity
+
+Install and load the following packages:
+
+- `moderndive`
+- `tidyverse` (this package contains many other packages)
+- `infer`
+- `fivethirtyeight`
+
+```{r}
+# install.packages(c("moderndive", "tidyverse", "infer", "fivethirtyeight"))
+library(moderndive)
+library(tidyverse)
+library(infer)
+library(fivethirtyeight)
+```
+
+
+### 0.4. Working with datasets
+
+
+#### Loading and Viewing a Dataset
+
+```{r}
+data("old_faithful_2024")
+#View(old_faithful_2024)
+glimpse(old_faithful_2024)
+```
+
+
+There are different ways to access a dataset function in R to load a dataset.
+
+- datasets are often part of R packages
+    - Load the package to have access to its datasets
+- Importing a dataset directly into R
+- Once the dataset has been loaded into R, we can view it using the function `View()`.
+
+
+#### Checking the dataset structure and data types. 
+
+Each column in a dataset has a data type, such as:  
+
+- `chr` for character (text)  
+- `dbl` for numeric (decimal values)  
+- `lgl` for logical (TRUE/FALSE)   
+- `int` for integer (non-decimal values)  
+- `fct` for factor (categorical)  
+
+The function `glimpse()` from the `dplyr` package in the `tidyverse` gives a preview of the data types and the first few entries in each column.
+
+
+```{r}
+glimpse(old_faithful_2024)
+```
+
+
+- We can also access a specific column by using the `$` operator, and then print it
+
+
+```{r}
+vec1 <- old_faithful_2024$duration
+vec1
+```
+
+
+#### Activity
+
+Let's load and view the dataset `un_member_states_2024` from the package `moderndive` 
+
+```{r}
+library(moderndive)
+data('un_member_states_2024')
+#View(un_member_states_2024)
+```
+
+The `View()` command opens a spreadsheet-like viewer in RStudio to explore the dataset. This is what is known as a `data frame` in R.
+
+The `un_member_states_2024` data contains information on 193 UN member states, with 39 columns capturing various aspects of each country. These columns include details such as the country name, ISO codes, continent, GDP per capita, population, life expectancy, and Olympic participation. It provides a comprehensive dataset for exploring demographic, economic, geographic, and social indicators at the country level.
+
+Observe that `country` and `iso` are identification variables while the remaining are measurement variables.
+
+
+
+
+#### Exercise
+
+Use the dataset `house_prices` from the package `moderndive` 
+
+1. Load and view the dataset. 
+2. Determine how many rows and how many variables this data frame has
+3. Check the structure of the variables (columns) in the dataset and provide at least one variable that is an identification variable and two others that are measurement variables. Provide also the data type for those three variables.
+4. Extract the variable `price` in the dataset `house_prices`
+
+```{r ANSWER_Part0}
+# Load the dataset
+library(moderndive)
+data("house_prices")
+
+# View the dataset
+# View(house_prices)
+# Check the number of rows and variables
+nrow(house_prices)
+ncol(house_prices)
+glimpse(house_prices)
+
+# Identification variable
+id_var <- "id"
+
+# Measurement variables (examples, there are more)
+measurement_vars <- c("price", "bedrooms", "bathrooms")
+
+# Data types of the variables
+# id is a character variable
+# price, bedrooms, and bathrooms are numeric variables (either integer or double)
+```
+
+### 0.5. Basic coding in R
+
+- Basic math in R
+    - Using numbers
+    - Using vectors
+- Using R functions.
+    - You can use named arguments or positional arguments. The former is more reliable.
+
+
+
+#### Exercise
+
+1. Extract information of the variable `price` in dataset `house_prices` and store
+this information in a vector called `pr`.
+2. Create a sequence of even numbers from 34 to 76. Store this sequence in an object called `even_vec`.
+
+```{r ANSWER_Part0_5}
+# Extracting the variable 'price' from the dataset 'house_prices'
+pr <- house_prices$price
+pr
+
+# Creating a sequence of even numbers from 34 to 76
+even_vec <- seq(from = 34, to = 76, by = 2)
+even_vec
+```
+
+## Part 1: Data Visualization using `ggplot2`
+
+Let's first install (if we haven't done this yet) and load the necessary packages. These are `ggplot2` for data visualization and `moderndive` to use some datasets.
+
+```{r}
+# install.packages(c("ggplot2", "moderndive"))
+library(ggplot2)
+library(moderndive)
+```
+
+In the Moderndive textbook, we present five named graphs. In the interest of time, we discuss three of them here: histograms, boxplots, and scatterplots.
+
+### 1.1. The Histogram
+
+Histograms are useful to visualize the distribution of the data. If the data is an entire population, we use the histogram to visualize the distribution of this population. 
+
+Let's use the dataset `un_member_states_2024` from the package `moderndive`, and study the distribution of life expectancy. We use the `names()` function to check the names of the variables/columns in the dataset.
+
+```{r}
+names(un_member_states_2024)
+ggplot(data = un_member_states_2024, mapping = aes(x = life_expectancy_2022)) + 
+  geom_histogram(fill = "steelblue", color = "white") + 
+  labs(title = "Distribution of UN Member States", 
+       x = "Population", 
+       y = "Frequency")
+```
+
+
+### 1.2. Boxplot
+
+Boxplots are useful to study the spread (or distribution) of a variable using a five-number summary to construct a box. Moreover, we can create boxplots separated by categories of another variable. This allows us to compare the distributions for each category.
+
+Let's continue using that dataset `un_member_states_2024` and construct boxplots to visualize the life expectancy spread by continent.
+
+```{r}
+canvas1 <- ggplot(data = un_member_states_2024, 
+                  mapping = aes(x = continent, y  = life_expectancy_2022))
+canvas1 + geom_boxplot()
+```
+
+
+### 1.3. Scatterplot
+
+Scatterplots display the relationship between two numerical variables.
+
+Let's continue using that dataset `un_member_states_2024` and construct the scatterplot of GDP per Capita vs. Life Expectancy.
+
+```{r}
+ggplot(un_member_states_2024, 
+       aes(x = gdp_per_capita, y = life_expectancy_2022)) + 
+  geom_point()
+```
+
+
+
+### 1.4. Faceted Scatterplot
+
+
+As was done with boxplots earlier, we can construct scatterplots separated by the categories of another variable.
+
+Let's use the dataset `un_member_states_2024` and construct scatterplots of GDP per capita vs. life expectancy by continent.
+
+
+```{r}
+ggplot(un_member_states_2024, 
+       aes(x = gdp_per_capita, y = life_expectancy_2022)) + 
+  geom_point() + 
+  facet_wrap(~continent)
+```
+
+
+
+### 1.5 Exercises
+
+Use the dataset `MA_schools` from the package `moderndive`, and do the following:
+
+1. Obtain a histogram for the distribution of the average SAT math score.
+2. Obtain box-plots showing the distribution of the average SAT math score by school size
+3. Obtain a scatterplot comparing the average SAT math score with the percentages of the student body that are considered economically disadvantaged
+4. Repeat the previous question, but creating faceted scatterplots by school size
+
+Remember to use `?MA_schools` to get more information about this dataset too.
+
+```{r ANSWER_Part1}
+library(moderndive)
+library(ggplot2)
+g1 <- ggplot(data = MA_schools, mapping = aes(x = average_sat_math))
+g1 + geom_histogram()
+
+ggplot(data = MA_schools, mapping = aes(x = size, y = average_sat_math)) + 
+  geom_boxplot()
+
+g2 <- ggplot(data = MA_schools, 
+             mapping = aes(x = average_sat_math, y = perc_disadvan)) 
+
+g2 + geom_point()
+g2 + geom_point() + facet_wrap(~size)
+```
+
+
+## Part 2: Data Wrangling and Tidy Data
+
+
+For this part, we are going to use the dataset `un_member_states_2024` from the package `moderndive`.
+
+In the next examples, we use functions that are part of `dplyr`.
+
+### 2.1. Filtering Rows with `filter()`
+
+- Filter countries in Africa with GDP per capita greater than $5,000
+- TIP: Can also use the `&` instead of `,` for AND conditions
+    - This is not the same as using `|`, which is an OR condition
+
+
+```{r filter-example}
+african_high_gdp <- un_member_states_2024 |> 
+  filter(continent == "Africa", gdp_per_capita > 5000)
+```
+
+
+
+### 2.2. Summarizing Data with summarize()
+
+Let's summarize the average life expectancy and population.
+
+
+```{r summarize-example}
+summary_stats <- un_member_states_2024 |> 
+  summarize(
+    avg_life_expectancy = mean(life_expectancy_2022, na.rm = TRUE),
+    med_population = median(population_2024, na.rm = TRUE)
+  )
+```
+
+
+
+### 2.3. Grouping Data with `group_by()`
+
+Group by continent and summarize the average life expectancy for each group.
+
+
+```{r groupby-example}
+life_expectancy_by_continent <- un_member_states_2024 |> 
+  group_by(continent) |>
+  summarize(avg_life_expectancy = mean(life_expectancy_2022, na.rm = TRUE))
+```
+
+
+
+### 2.4. Creating New Variables with `mutate()`
+
+Create a new variable that categorizes countries by GDP per capita.
+
+
+```{r mutate-example}
+un_member_states_2024 <- un_member_states_2024 |> 
+  mutate(
+    gdp_category = case_when(
+      gdp_per_capita > 30000 ~ "High",
+      gdp_per_capita > 10000 ~ "Medium",
+      TRUE ~ "Low"
+    )
+  )
+```
+
+
+
+### 2.5. Arranging Rows with `arrange()`
+
+Arrange countries by population in descending order.
+
+
+```{r arrange-example}
+un_member_states_2024 |> 
+  arrange(desc(population_2024))   
+```
+
+
+
+### 2.6. Selecting Specific Columns with `select()`
+
+Choose the country name, continent, and population.
+
+
+```{r select-example}
+selected_data <- un_member_states_2024 |> 
+  select(country, continent, population_2024)
+selected_data
+```
+
+Now, let's put it all together. Let's create a pipeline that filters, groups, summarizes, mutates, arranges, and selects columns for countries in Asia and Europe.
+
+```{r}
+my_new_data <- un_member_states_2024 |>
+  filter(continent %in% c("Asia", "Europe")) |>
+  group_by(continent) |>
+  summarize(
+    avg_gdp_per_capita = mean(gdp_per_capita, na.rm = TRUE),
+    avg_life_expectancy = mean(life_expectancy_2022, na.rm = TRUE)
+  ) |>
+  ungroup() |> # Ungroup before creating new variables
+  mutate(
+    gdp_category = case_when(
+      avg_gdp_per_capita > 30000 ~ "High",
+      avg_gdp_per_capita > 10000 ~ "Medium",
+      TRUE ~ "Low"
+    )
+  ) |>
+  arrange(desc(avg_life_expectancy)) |>
+  select(continent, 
+         `Average GDP per capita` = avg_gdp_per_capita, 
+         `Average Life Expectancy` = avg_life_expectancy, 
+         gdp_category)
+
+my_new_data
+```
+
+### 2.7. Exercises
+
+Use the dataset `gss` from the package `infer` and do the following:
+
+1. Filter the data to account only for individuals with a college degree
+2. Group the data by `class`
+3. Summarize the average number of weekly working hours and the year the respondent was surveyed.
+4. Create a categorical variable for the average number of hours, with categories full time, part time, or contract, if the average hours is at least 40, between 20 and 40, or less than 20, respectively.
+5. Arrange the data in descending order based on the average hours.
+6. Create a dataset only with columns `class` and average hours.
+
+```{r ANSWER_Part2}
+data_ex2_7 <- gss |>
+  filter(college == "degree") |>
+  group_by(class) |>
+  summarize(
+    avg_hours = mean(hours, na.rm = TRUE),
+    avg_year = mean(year, na.rm = TRUE)) |>
+  ungroup() |>
+  mutate(
+    hours_category = case_when(
+      avg_hours >= 40 ~ "Full_time",
+      avg_hours > 20 ~ "Part-time",
+      TRUE ~ "Contract")) |>
+  arrange(desc(avg_hours)) |>
+  select(class,avg_hours)
+
+data_ex2_7
+```
+
+
+
+## Part 3: Inference: Sampling, Confidence Intervals, and Hypothesis Test
+
+
+### 3.1. Population and Sampling
+
+
+#### Population  Data
+
+
+
+- Calculate the population mean and the population standard deviation
+
+```{r}
+library(moderndive)
+almonds_bowl |> 
+  summarize(pop_mean = mean(weight), 
+            pop_sd = sd(weight))
+
+```
+
+
+- Visualize the distribution of the population data
+
+
+```{r}
+ggplot(almonds_bowl, aes(x = weight)) +
+  geom_histogram(binwidth = 0.1, color = "white")
+```
+
+
+
+
+#### Sampling
+
+- Take many samples (1000) of size 100 from the population
+
+```{r}
+samples_almonds <- almonds_bowl |> 
+  rep_slice_sample(n = 100, reps = 1000)
+samples_almonds
+
+```
+
+- Calculate the sample means
+
+```{r}
+sample_means <- samples_almonds |> 
+  summarize(mean_weight = mean(weight))
+sample_means
+```
+
+
+We now show that the mean of sample means is very close to the population mean, and the standard error (the standard deviation of the sample means) is very close to the population standard deviation divided by the square root of the sample size.
+
+```{r}
+sample_means |> 
+  summarize(mean_of_sample_means = mean(mean_weight), 
+            sd_of_sample_means = sd(mean_weight))
+
+almonds_bowl |> 
+  summarize(pop_mean = mean(weight), 
+            pop_sd_over_sqrt_sample_size = sd(weight) / sqrt(100))
+
+```
+
+- We draw a histogram for the sample means and show that it roughly follows a bell-shaped curve: 
+
+```{r}
+ggplot(sample_means, aes(x = mean_weight)) +
+  geom_histogram(binwidth = 0.02, color = "white") +
+  labs(x = "Sample mean", title = "Histogram of 1000 sample means") 
+```
+
+
+
+    
+### 3.2. Confidence Interval: A Theory-Based Approach
+
+
+- The dataset `almonds_sample_100` in `moderndive` is a random sample of 100 almonds from the almond bowl. We calculate the sample mean and the sample standard deviation
+
+```{r}
+almonds_sample_100 |>
+  summarize(sample_mean = mean(weight), sample_sd = sd(weight))
+```
+
+- The margin of error for a 95% confidence interval is approximately two times the standard error, and the confidence interval is
+
+```{r}
+almonds_sample_100 |>
+  summarize(sample_mean = mean(weight), sample_sd = sd(weight),
+            lower_bound = mean(weight) - 2*sd(weight)/sqrt(length(weight)),
+            upper_bound = mean(weight) + 2*sd(weight)/sqrt(length(weight)))
+```
+
+
+Recall that we use the number 2 to approximate a 95% confidence level. For other levels of confidence, we can use the quantile of a normal distribution or a t-distribution with $n-1$ degrees of freedom. For example, for a 97% confidence interval, we could rewrite the code as:
+
+```{r}
+conf_level <- 0.97
+n <- 100
+q <- qt(1 - (1 - conf_level)/2, n -1)
+almonds_sample_100 |>
+  summarize(sample_mean = mean(weight), sample_sd = sd(weight),
+            lower_bound = mean(weight) - q*sd(weight)/sqrt(length(weight)),
+            upper_bound = mean(weight) + q*sd(weight)/sqrt(length(weight)))
+```
+
+
+- We can now interpret the confidence interval
+
+If you could construct intervals using the procedure described earlier for every possible random sample, we'd expect 97% of these intervals to include the population mean, and 3% of them will not. In the literature, the short-hand interpretation is: we are "97% confident" that the average almond weight is between 3.6 and 3.76 grams. 
+
+    
+### 3.3. Confidence Interval: A Simulation-Based Approach
+
+Simulation-based approaches can be done by:
+
+- Resampling with replacement from a single (original sample)
+- Generating samples using the parameters of a known distribution
+- Using permutations in the data (when there are two or more related samples) or in parts of a sample
+
+
+
+
+#### Bootstrap samples using dplyr
+
+
+```{r}
+boot_means_1 <- almonds_sample_100 |> 
+  ungroup() |> 
+  select(-replicate) |> 
+  rep_sample_n(size = 100, replace = TRUE, reps = 1000) |> 
+  summarize(mean_weight = mean(weight))
+```
+
+Now, the confidence interval is approximated using these bootstrap sample means instead of sampling from the population.
+
+#### Using infer
+
+- Going Over the `infer` Framework
+
+![infer_framework](https://moderndive.com/v2/images/flowcharts/infer/visualize.png)
+
+- Bootstrapping the Sample
+
+```{r}
+library(infer)
+bootstrap_means <- almonds_sample_100 |> 
+  specify(response = weight) |> 
+  generate(reps = 1000) |> 
+  calculate(stat = "mean")
+bootstrap_means
+```
+
+
+
+
+
+
+- Calculate the Bootstrap Confidence Interval
+
+```{r}
+percentile_ci <- bootstrap_means |> 
+  get_confidence_interval(level = 0.95, type = "percentile")
+percentile_ci
+```
+
+- Visualize the confidence interval
+
+```{r}
+visualize(bootstrap_means) + 
+  shade_ci(endpoints = percentile_ci, color = "blue", fill = "lightblue")
+```
+
+
+- The interpretation of the Bootstrap Confidence Interval is equivalent to the theory-based interpretation.
+
+
+
+We could use a set of pipes to generate confidence intervals from the population:
+
+```{r}
+almonds_bowl |> 
+  rep_slice_sample(n = 100, reps = 1) |> 
+  specify(response = weight) |> 
+  generate(reps = 1000) |> 
+  calculate(stat = "mean") |>
+  get_confidence_interval(level = 0.95, type = "percentile")
+```
+
+
+
+
+
+
+
+### 3.5. Simulation-based approach for one-sample problems
+
+Let's continue working with the almonds example and assume that someone claims that
+the average weight of almonds in the bowl (population) is 3.6 grams. We perform a test
+to check this claim using the sample `almonds_sample_100`
+
+Assume that $H_0: \mu  = 3.6$ versus $H_1: \mu \ne 3.6$
+
+The simulation-based approach using `infer` is given by
+
+```{r}
+null_dist <- almonds_sample_100 |>
+  specify(response = weight) |>
+  hypothesize(null = "point", mu = 3.6) |>
+  generate(reps = 1000, type = "bootstrap") |>
+  calculate(stat = "mean")
+```
+
+
+```{r}
+x_bar_almonds <- almonds_sample_100 |>
+  summarize(sample_mean = mean(weight)) |>
+  select(sample_mean)
+
+# Or use the shortcut `observe()` function
+x_bar_almonds <- almonds_sample_100 |>
+  observe(response = weight, stat = "mean")
+
+null_dist |>
+  get_p_value(obs_stat = x_bar_almonds, direction = "two-sided")
+```
+
+
+### 3.6. Simulation-based approach for two-sample problems
+
+For two-sample problems, we will use permutation tests.
+
+Is metal music more popular than deep house music?
+
+```{r}
+spotify_metal_deephouse <- spotify_by_genre |> 
+  filter(track_genre %in% c("metal", "deep-house")) |> 
+  select(track_genre, artists, track_name, popularity, popular_or_not) 
+
+
+spotify_metal_deephouse |>
+  group_by(track_genre, popular_or_not) |> 
+  sample_n(size = 2)
+```
+
+```{r}
+null_distribution <- spotify_metal_deephouse |> 
+  specify(formula = popular_or_not ~ track_genre, success = "popular") |> 
+  hypothesize(null = "independence") |> 
+  generate(reps = 1000, type = "permute") |> 
+  calculate(stat = "diff in props", order = c("metal", "deep-house"))
+null_distribution
+```
+
+```{r}
+obs_diff_prop <- spotify_metal_deephouse |> 
+  specify(formula = popular_or_not ~ track_genre, success = "popular") |> 
+  calculate(stat = "diff in props", order = c("metal", "deep-house"))
+obs_diff_prop
+```
+
+```{r}
+# Or use the shortcut `observe()` function
+spotify_metal_deephouse |> 
+  observe(formula = popular_or_not ~ track_genre, 
+          success = "popular", 
+          stat = "diff in props", 
+          order = c("metal", "deep-house"))
+```
+
+
+```{r}
+visualize(null_distribution, bins = 25) + 
+  shade_p_value(obs_stat = obs_diff_prop, direction = "right")
+```
+
+```{r}
+null_distribution |> 
+  get_p_value(obs_stat = obs_diff_prop, direction = "right")
+```
+
+
+
+### 3.7. Exercises
+
+
+#### Confidence Intervals
+
+1. Use the dataset `gss` from the package `infer` as your population and obtain a random sample from this population with 62 observations.
+2. Obtain a 96% confidence interval for `hours`, the number of hours worked in one week, using the theory-based approach
+3. Repeat question 2 using the simulation-based approach with 4000 bootstrap samples.
+4. Interpret one of your intervals.
+
+```{r}
+# Load the gss dataset
+library(infer)
+data("gss")
+# 1. Obtain a random sample of 62 observations
+gss_sample <- gss |> 
+  slice_sample(n = 62)
+
+# 2. Obtain a 96% confidence interval using the theory-based approach
+gss_sample |> 
+  summarize(sample_mean = mean(hours, na.rm = TRUE), 
+            sample_sd = sd(hours, na.rm = TRUE)) |> 
+  mutate(lower_bound = sample_mean - qt(0.96, df = 61) * sample_sd / sqrt(62),
+         upper_bound = sample_mean + qt(0.96, df = 61) * sample_sd / sqrt(62))
+
+# 3. Obtain a 96% confidence interval using the simulation-based approach
+set.seed(2025)
+gss_bootstrap <- gss_sample |> 
+  specify(response = hours) |> 
+  generate(reps = 4000, type = "bootstrap") |> 
+  calculate(stat = "mean")
+gss_bootstrap |>
+  get_confidence_interval(level = 0.96, type = "percentile")
+
+# 4. Interpret the confidence interval
+# The confidence interval indicates that we are "96% confident" that the true average number of hours worked in one week by individuals in the population is between the lower (39.9 hours) and upper bounds (48.1 hours) calculated.
+```
+
+#### One-sample Hypothesis Test
+
+1. Use a simulation-based approach on the almonds problem to test $H_0: \mu  \le 3.6$ versus $H_1: \mu > 3.6$. For this, obtain a new random sample of 125 observations from `almonds_bowl`. Use a significance level of 0.1.
+
+```{r}
+set.seed(2025)
+almonds_sample_125 <- almonds_bowl |> 
+  slice_sample(n = 125)
+obs_stat_almonds <- almonds_sample_125 |>
+  observe(response = weight, stat = "mean")
+null_dist_almonds <- almonds_sample_125 |>
+  specify(response = weight) |> 
+  hypothesize(null = "point", mu = 3.6) |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "mean")
+null_dist_almonds |>
+  get_p_value(obs_stat = obs_stat_almonds, direction = "greater")
+```
+
+
+2. Use the dataset `gss` from the package `infer` and test whether the average number of hours worked in one week is different than 40. Use a significance level of 0.04, and compare your results to the relevant confidence interval from earlier.
+
+```{r}
+gss_sample_62 <- gss |> 
+  slice_sample(n = 62)
+obs_stat_gss <- gss_sample_62 |>
+  observe(response = hours, stat = "mean")
+null_dist_gss <- gss_sample_62 |>
+  specify(response = hours) |> 
+  hypothesize(null = "point", mu = 40) |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "mean")
+null_dist_gss |>
+  get_p_value(obs_stat = obs_stat_gss, direction = "two-sided")
+```
+
+Since 40 was included in our confidence interval, we fail to reject the null hypothesis that the average number of hours worked in one week is equal to 40. The p-value from the hypothesis test also supports this conclusion, as it is greater than the significance level of 0.04.
+
+#### Two-Sample Hypothesis Test
+
+Let's continue working with `spotify_by_genre`. Do the following
+
+1. Run the following code to get some information on the averages, per genre, of some variables:
+
+```{r}
+spotify_by_genre |>
+  group_by(track_genre)|>
+  summarise(mean_popularity = mean(popularity), 
+            mean_danceability = mean(danceability), 
+            mean_duration = mean(duration_ms), 
+            mean_explicit = mean(explicit), 
+            mean_loud = mean(loudness),
+            mean_acoustic = mean(acousticness), 
+            mean_tempo = mean(tempo))
+```
+
+2. Select two music genres that you would like to compare. For example, `deep-house` and `hip-hop`. 
+
+```{r}
+tracks <- c("deep-house", "hip-hop")
+data_two_genres <- spotify_by_genre |> 
+  filter(track_genre %in% tracks)
+```
+
+
+
+3. Based on the averages shown in part 1, select one of the numerical variables in `spotify_by_genre` and use it to generate a categorical variable with two categories. For example, if we use `danceability`, we can create a categorical variable `dance_yes_or_no` that is `yes` if the track has a danceability score higher than 0.7 and "no" otherwise:
+
+```{r}
+# histogram of danceability
+ggplot(data_two_genres, aes(x = danceability)) +
+  geom_histogram(binwidth = 0.05, fill = "lightblue", color = "black") +
+  labs(title = "Distribution of Danceability",
+       x = "Danceability",
+       y = "Frequency")
+```
+
+
+```{r}
+tracks <- c("deep-house", "hip-hop")
+data_with_dance_yes_no <- data_two_genres |> 
+  select(track_genre, artists, track_name, danceability) |>
+  mutate(dance_yes_or_no = if_else(danceability > 0.7, "yes", "no"))
+```
+
+
+4. Take a sample of 50 observations for each of the two genres chosen. For example, using the Spotify data for `deep-house` and `hip-hop` modified in previous parts:
+
+```{r}
+sample_from_data <- data_with_dance_yes_no |>
+  slice_sample(n = 50, by = track_genre)
+```
+
+
+5. Perform a two-sample hypothesis test using the simulation-based approach to compare whether the criterion chosen is different for both music genres. In our example, this criterion was danceability and the two music genres were `deep-house` and `hip-hop`.
+
+
+```{r}
+spotify_two_genres <- spotify_by_genre |> 
+  filter(track_genre %in% tracks) |> 
+  select(track_genre, artists, track_name, danceability) |>
+  mutate(dance_yes_or_no = if_else(danceability > 0.7, "yes", "no")) |>
+  slice_sample(n = 50, by = track_genre)
+
+
+null_distribution <- spotify_two_genres |> 
+  specify(formula = dance_yes_or_no ~ track_genre, success = "yes") |> 
+  hypothesize(null = "independence") |> 
+  generate(reps = 1000, type = "permute") |> 
+  calculate(stat = "diff in props", order = tracks)
+
+
+obs_diff_prop <- spotify_two_genres |> 
+  specify(formula = dance_yes_or_no ~ track_genre, success = "yes") |> 
+  calculate(stat = "diff in props", order = tracks)
+
+null_distribution |> 
+  visualize() + 
+  shade_p_value(obs_stat = obs_diff_prop, direction = "two-sided") +
+  labs(title = "Two-Sample Hypothesis Test for Danceability by Genre",
+       x = "Difference in Proportions (Danceable Tracks)",
+       y = "Density")
+
+null_distribution |> 
+  get_p_value(obs_stat = obs_diff_prop, direction = "two-sided")
+```
+
+
