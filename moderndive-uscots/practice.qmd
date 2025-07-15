@@ -8,9 +8,6 @@ format: html
 ```{r}
 #| include: false
 options(width = 120)
-library(tidyverse)
-library(infer)
-library(moderndive)
 ```
 
 
