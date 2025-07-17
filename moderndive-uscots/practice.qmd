@@ -517,14 +517,14 @@ Simulation-based approaches can be done by:
 
 
 
-#### Bootstrap samples using dplyr
+#### Bootstrap samples using mostly dplyr
 
 
 ```{r}
 boot_means_1 <- almonds_sample_100 |> 
   ungroup() |> 
   select(-replicate) |> 
-  rep_sample_n(size = 100, replace = TRUE, reps = 1000) |> 
+  rep_slice_sample(n = 100, replace = TRUE, reps = 1000) |> 
   summarize(mean_weight = mean(weight))
 ```
 
