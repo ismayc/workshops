@@ -279,7 +279,7 @@ african_high_gdp <- un_member_states_2024 |>
 
 
 
-### 2.2. Summarizing Data with summarize()
+### 2.2. Summarizing Data with `summarize()`
 
 Let's summarize the average life expectancy and population.
 
